@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include<random>
+#include <random>
 
 class Solution
 {
@@ -119,7 +119,7 @@ public:
 		//std::vector<int> help(R - L + 1);
 		//int help[R - L + 1];	// windows本地编译器不可以用变量初始化数组
 		int length = R - L + 1;
-		int *help = new int[length];
+		int *help = new int[length]();
 		int i = 0;
 		int p1 = L;
 		int p2 = mid + 1;
@@ -285,54 +285,113 @@ public:
 		}
 	}
 
-	//// 这个桶排序写的像计数排序
+	// 桶排序实现逻辑：
+	// 最小值到最大值划分为桶，数值按照桶的范围放入，每个桶各自排序
+	// 按顺序取出
+	// 以下桶排序写法会去除重复的数值
+	// 桶排序(容器)
+	void bucketSort(std::vector<int> &vect) {
+		int vSize = vect.size();
+		if (vSize < 2) return;
+		int max = INT_MIN;
+		int min = INT_MAX;
+		for (int i = 0; i < vSize; ++i) {
+			min = min < vect[i] ? min : vect[i];
+			max = max > vect[i] ? max : vect[i];
+		}
+		int diff = max - min;
+		int bLength = diff + 2;	// 划分了 diff + 2 个桶
+		std::vector<int> buckets(bLength, 0);
+		std::vector<bool> bucketsHasNum(bLength, false);
+		int bIdx = 0;	// 去几号桶
+		for (int i = 0; i < vSize; ++i) {
+			bIdx = (vect[i] - min)*vSize / diff;
+			buckets[bIdx] = vect[i];
+			bucketsHasNum[bIdx] = true;
+		}
 
-	//// 桶排序(容器)
-	//void bucketSort(std::vector<int> &vect) {
-	//	int max = vect[0];
-	//	for (unsigned int i = 1; i < vect.size(); ++i) {
-	//		if (vect[i] > max)
-	//			max = vect[i];
-	//	}
-	//	std::vector<int> buckets(max + 1, 0);
-	//	// 1.计数,将数组arr中的元素放到桶中
-	//	for (unsigned int i = 0; i < vect.size(); ++i)
-	//		buckets[vect[i]]++; // 将arr[i]的值对应buckets数组的下标，每有一个就加1
-	//						 //					   // 2.排序
-	//	for (unsigned int i = 0, j = 0; i < buckets.size(); ++i) {
-	//		while (buckets[i] > 0) { // 说明存有元素,相同的整数，要重复输出
-	//			vect[j] = i;
-	//			buckets[i]--;
-	//			j++;
-	//		}
-	//	}
-	//}
-	//// 桶排序(数组)
-	//void bucketSort(int *a, int length) {
-	//	int max = a[0];
-	//	for (int i = 1; i < length; ++i){
-	//		if (a[i] > max)
-	//			max = a[i];
-	//	}
-	//	//int buckets[max + 1];
-	//	int *buckets = new int[max + 1];
-	//	for (int i = 0; i < max + 1; ++i) // 清零
-	//		buckets[i] = 0;
-	//	// 1.计数,将数组arr中的元素放到桶中
-	//	for (int i = 0; i < length; ++i)
-	//		buckets[a[i]]++; // 将arr[i]的值对应buckets数组的下标，每有一个就加1
-	//	//					   // 2.排序
-	//	for (int i = 0, j = 0; i < max + 1; ++i) {
-	//		while (buckets[i] > 0) { // 说明存有元素,相同的整数，要重复输出
-	//			a[j] = i;
-	//			buckets[i]--;
-	//			j++;
-	//		}
-	//	}
-	//	delete[]buckets;
-	//}
+		for (int i = 0, j = 0; i < bLength; ++i) {
+			if (bucketsHasNum[i])
+				vect[j++] = buckets[i];
+		}
+	}
+	// 桶排序(数组)
+	void bucketSort(int *a, int length) {
+		if (length < 2) return;
+		int max = INT_MIN;
+		int min = INT_MAX;
+		for (int i = 0; i < length; ++i){
+			min = min < a[i] ? min : a[i];
+			max = max > a[i] ? max : a[i];
+		}
+		int diff = max - min;
+		int bLength = diff + 2;	// 划分了 diff + 2 个桶
+		int *buckets = new int[bLength]();	
+		bool *bucketsHasNum = new bool[bLength]();	// 用于标记该桶是否有数字
+		int bIdx = 0;	// 去几号桶
+		for (int i = 0; i < length; ++i) {
+			bIdx = (a[i] - min)*length / diff;
+			buckets[bIdx] = a[i];
+			bucketsHasNum[bIdx] = true;
+		}
+		
+		for (int i = 0; i < bLength; ++i) {
+			if (bucketsHasNum[i])
+				*a++ = buckets[i];
+		}
+		delete[]buckets;
+		delete[]bucketsHasNum;
+	}
 
-	// flashsort
+	// flashSort即改进了对要使用的桶的预测,或者说,减少了无用桶的数量从而节省了空间,例如
+	// 待排数字[6 2 4 1 5 9 100]桶排需要100个桶, 而flash sort则由于可以预测桶则只需要7个桶
+	// flashSort(容器)
+	void flashSort(std::vector<int> &vect) {
+		int vSize = vect.size();
+		if (vSize < 2) return;
+		int max = INT_MIN;
+		int min = INT_MAX;
+		for (int i = 0; i < vSize; ++i) {
+			min = min < vect[i] ? min : vect[i];
+			max = max > vect[i] ? max : vect[i];
+		}
+		int diff = max - min;
+		// 划分了 vSize 个桶
+		std::vector<int> buckets(vSize, 0);
+		int bIdx = 0;	// 去几号桶
+		for (int i = 0; i < vSize; ++i) {
+			// 索引预测修改(与桶排序相比)
+			bIdx = (vSize - 1) * (vect[i] - min) / diff;
+			buckets[bIdx] = vect[i];
+		}
+
+		for (int i = 0; i < vSize; ++i) {
+				vect[i] = buckets[i];
+		}
+	}
+	// flashSort(数组)
+	void flashSort(int *a, int length) {
+		if (length < 2) return;
+		int max = INT_MIN;
+		int min = INT_MAX;
+		for (int i = 0; i < length; ++i) {
+			min = min < a[i] ? min : a[i];
+			max = max > a[i] ? max : a[i];
+		}
+		int diff = max - min;
+		int *buckets = new int[length]();
+		int bIdx = 0;	// 去几号桶
+		for (int i = 0; i < length; ++i) {
+			// 索引预测修改(与桶排序相比)
+			bIdx = (length - 1) * (a[i] - min) / diff;
+			buckets[bIdx] = a[i];
+		}
+
+		for (int i = 0; i < length; ++i) {
+				*a++ = buckets[i];
+		}
+		delete[]buckets;
+	}
 
 	// 计数排序(容器)
 	void countSort(std::vector<int> &vect)
@@ -435,7 +494,10 @@ int main() {
 	//s.countSort(vect);
 	//s.countSort(a, length);
 
-	s.bucketSort(vect);
+	//s.bucketSort(vect);
+	//s.bucketSort(a, length);
+
+	s.flashSort(vect);
 	s.bucketSort(a, length);
 
 	for (unsigned int i = 0; i < vect.size(); ++i) {
