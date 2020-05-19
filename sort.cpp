@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <list>	// 基数排序用
 
 class Solution
 {
@@ -453,6 +454,60 @@ public:
 		delete[]countData;
 	}
 
+	// 基数排序LSD(容器)
+	void radixSort(std::vector<int> &vect) {
+		// 首先找到最大的数
+		int max = vect[0];
+		for (unsigned int i = 1; i < vect.size(); ++i)
+			vect[i] > max ? vect[i] : max;
+		// 确定最大的数有几位
+		int dNum = 1, dp = 10;
+		while (max >= dp) {
+			dp *= 10;
+			++dNum;
+		}
+		std::list<int> lists[10];	// 0~9
+		int d, k, factor;
+		unsigned int j;
+		for (d = 1, factor = 1; d <= dNum; factor *= 10, ++d) {
+			for (j = 0; j < vect.size(); ++j) {
+				lists[(vect[j] / factor) % 10].push_back(vect[j]);
+			}
+			for (j = k = 0; j < 10; ++j) {
+				while (!lists[j].empty()) {
+					vect[k++] = lists[j].front();
+					lists[j].pop_front();
+				}
+			}
+		}
+	}
+	// 基数排序LSD(数组)
+	void radixSort(int *a, int length) {
+		// 首先找到最大的数
+		int max = a[0];
+		for (int i = 1; i < length; ++i)
+			a[i] > max ? a[i] : max;
+		// 确定最大的数有几位
+		int dNum = 1, dp = 10;
+		while (max >= dp) {
+			dp *= 10;
+			++dNum;
+		}
+		std::list<int> lists[10];	// 0~9
+		int d, j, k, factor;
+		for (d = 1, factor = 1; d <= dNum; factor *= 10, ++d) {
+			for (j = 0; j < length; ++j) {
+				lists[(a[j] / factor) % 10].push_back(a[j]);
+			}
+			for (j = k = 0; j < 10; ++j) {
+				while (!lists[j].empty()) {
+					a[k++] = lists[j].front();
+					lists[j].pop_front();
+				}
+			}
+		}
+	}
+
 private:
 	int res[2];	// 快排用
 };
@@ -464,7 +519,6 @@ Solution::Solution()
 Solution::~Solution()
 {
 }
-
 int main() {
 	int a[6] = {1, 5, 6, 2, 4, 3};
 	int length = sizeof(a) / sizeof(a[1]);
@@ -498,7 +552,7 @@ int main() {
 	//s.bucketSort(a, length);
 
 	s.flashSort(vect);
-	s.bucketSort(a, length);
+	s.flashSort(a, length);
 
 	for (unsigned int i = 0; i < vect.size(); ++i) {
 		std::cout << vect[i] << " ";
@@ -509,6 +563,23 @@ int main() {
 		std::cout << a[i] << " ";
 	}
 	std::cout << std::endl;
+
+	int a1[10] = { 179, 208, 306, 93, 859, 984, 55, 9, 271, 33 };
+	int length1 = sizeof(a1) / sizeof(a1[1]);
+
+	std::vector<int> vect1 = { 179, 208, 306, 93, 859, 984, 55, 9, 271, 33 };
+
+	s.radixSort(vect1);
+	s.radixSort(a1, length1);
+
+	for (unsigned int i = 0; i < vect1.size(); ++i) {
+		std::cout << vect1[i] << " ";
+	}
+	std::cout << std::endl;
+
+	for (int i = 0; i < length1; ++i) {
+		std::cout << a1[i] << " ";
+	}
 
 	return 0;
 }
