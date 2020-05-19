@@ -1,7 +1,8 @@
 #include <iostream>
 
 namespace MyListNode {
-	template <class Type> class List;
+	// 单向链表
+	template <class Type> class List;	// 声明
 
 	template <class Type>
 	class ListNode
@@ -86,9 +87,56 @@ namespace MyListNode {
 	private:
 		ListNode<Type> *first;
 	};
+
+	// 双向链表(不完整)
+	template <class Type> class DoubleList;		// 声明
+
+	template <class Type>
+	class DoubleListNode
+	{
+		friend class DoubleList<Type>;
+	private:
+		Type data;
+		DoubleListNode *lLink, *rLink;
+	};
+
+	template <class Type>
+	class DoubleList
+	{
+	public:
+		DoubleList()
+		{
+			first = new DoubleListNode<Type>();
+			first->lLink = first->rLink = first;
+		}
+
+		void insertNode(DoubleListNode<Type> *p, DoubleListNode<Type> *x)
+		{
+			p->lLink = x;
+			p->rLink = x->rLink;
+			x->rLink->lLink = p;
+			x->rLink = p;
+		}
+
+		void deleteNode(DoubleListNode<Type> *x)
+		{
+			if (x == first)
+				// 一般cerr用来显示错误信息
+				std::cerr << "Deletion of head node not permitted" << std::endl;
+			else
+			{
+				x->lLink->rLink = x->rLink;
+				x->rLink->lLink = x->lLink;
+				delete x;
+			}
+		}
+	private:
+		DoubleListNode<Type> *first;	// 指向表头结构
+	};
 }
 
 int main() {
+	std::cout << "单向链表" << std::endl;
 	MyListNode::List<int> intList;
 	intList.insertNode(5);
 	intList.insertNode(15);
@@ -110,6 +158,19 @@ int main() {
 
 	intList.concatenateNode(intListForCat);
 	intList.show();
+
+	std::cout << "双向链表" << std::endl;
+	MyListNode::DoubleList<int> intDoubleList;
+	MyListNode::DoubleListNode<int> *node1, *node2, *node3;
+	node1 = new MyListNode::DoubleListNode<int>();
+	node2 = new MyListNode::DoubleListNode<int>();
+	node3 = new MyListNode::DoubleListNode<int>();
+
+	// 由于data定义的是private，不可以在此处用node1->data访问
+
+	delete node1;
+	delete node2;
+	delete node3;
 
 	return 0;
 }
